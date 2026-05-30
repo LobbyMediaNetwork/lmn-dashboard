@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LMN Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0c0b09;
+  --surface: #131210;
+  --surface2: #1a1815;
+  --surface3: #222019;
+  --border: #2a2720;
+  --border2: #332f26;
+  --gold: #c9a84c;
+  --gold2: #e8c96a;
+  --gold-dim: rgba(201,168,76,0.1);
+  --gold-glow: rgba(201,168,76,0.05);
+  --white: #f5f0e8;
+  --muted: #6b6355;
+  --muted2: #9a8f7e;
+  --green: #4caf7d;
+  --green-dim: rgba(76,175,125,0.1);
+  --red: #e05a4e;
+  --red-dim: rgba(224,90,78,0.1);
+  --blue: #7aa2d4;
+  --blue-dim: rgba(122,162,212,0.1);
+  --orange: #d4874a;
+  --orange-dim: rgba(212,135,74,0.1);
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--white); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+
+/* ── LAYOUT ── */
+.app { display: grid; grid-template-columns: 56px 200px 1fr; grid-template-rows: 52px 1fr; height: 100vh; }
+
+/* ── TOPBAR ── */
+.topbar {
+  grid-column: 1/4; background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 20px 0 0; gap: 16px;
+}
+
+.topbar-logo {
+  width: 56px; height: 52px; background: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; border-right: 1px solid var(--border);
+  cursor: pointer;
+}
+.topbar-logo span { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--bg); letter-spacing: 0.08em; }
+
+.topbar-brand { display: flex; flex-direction: column; margin-right: 24px; }
+.topbar-brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--gold); letter-spacing: 0.08em; line-height: 1; }
+.topbar-brand-sub { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; }
+
+.topbar-divider { width: 1px; height: 24px; background: var(--border2); }
+.topbar-page { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted2); letter-spacing: 0.14em; text-transform: uppercase; }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+.topbar-status { display: flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--green); letter-spacing: 0.1em; }
+.pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+/* ── ICON RAIL ── */
+.icon-rail {
+  grid-row: 2; grid-column: 1;
+  background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 4px;
+}
+
+.rail-icon {
+  width: 36px; height: 36px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; cursor: pointer; transition: background 0.15s; position: relative;
+}
+.rail-icon:hover { background: var(--gold-glow); }
+.rail-icon.active { background: var(--gold-dim); }
+.rail-icon.active::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 2px; height: 20px; background: var(--gold); border-radius: 0 2px 2px 0;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  grid-row: 2; grid-column: 2;
+  background: var(--surface); border-right: 1px solid var(--border);
+  overflow-y: auto; padding: 16px 0;
+}
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border2); }
+
+.nav-section { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); padding: 16px 16px 6px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; font-size: 12px; color: var(--muted2);
+  cursor: pointer; transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--white); background: var(--gold-glow); }
+.nav-item.active { color: var(--gold); background: var(--gold-dim); border-left-color: var(--gold); }
+.nav-icon { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
+.nav-badge { margin-left: auto; background: var(--gold); color: var(--bg); font-family: 'DM Mono', monospace; font-size: 9px; padding: 1px 5px; border-radius: 8px; }
+
+/* ── MAIN ── */
+.main { grid-row: 2; grid-column: 3; overflow-y: auto; padding: 24px; background: var(--bg); }
+.main::-webkit-scrollbar { width: 4px; }
+.main::-webkit-scrollbar-thumb { background: var(--border2); }
+
+/* Views */
+.view { display: none; }
+.view.active { display: block; }
+
+/* Page header */
+.page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; }
+.page-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--white); letter-spacing: 0.06em; line-height: 1; }
+.page-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; margin-top: 4px; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 18px; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-gold { background: var(--gold); color: var(--bg); }
+.btn-gold:hover { background: var(--gold2); }
+.btn-outline { background: transparent; color: var(--muted2); border: 1px solid var(--border2); }
+.btn-outline:hover { color: var(--white); border-color: var(--muted2); }
+.btn-sm { padding: 6px 12px; font-size: 9px; }
+.btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid rgba(224,90,78,0.2); }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--border); margin-bottom: 20px; }
+.stat { background: var(--surface); padding: 18px 20px; position: relative; overflow: hidden; }
+.stat::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: var(--gold); transform: scaleX(0); transition: transform 0.3s; transform-origin: left; }
+.stat:hover::after { transform: scaleX(1); }
+.stat-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.stat-val { font-family: 'Bebas Neue', sans-serif; font-size: 38px; color: var(--white); line-height: 1; letter-spacing: 0.02em; }
+.stat-change { font-size: 11px; margin-top: 4px; }
+.up { color: var(--green); }
+.neutral { color: var(--muted); }
+
+/* Grid */
+.grid-2 { display: grid; grid-template-columns: 1fr 320px; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+
+/* Panels */
+.panel { background: var(--surface); border: 1px solid var(--border); margin-bottom: 16px; }
+.panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.panel-title { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
+.panel-action { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.12em; color: var(--muted); cursor: pointer; text-transform: uppercase; transition: color 0.15s; }
+.panel-action:hover { color: var(--gold); }
+
+/* Table */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); padding: 9px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 400; }
+.tbl td { padding: 10px 16px; font-size: 12px; color: var(--muted2); border-bottom: 1px solid var(--border); }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tr:hover td { background: var(--gold-glow); color: var(--white); cursor: pointer; }
+.td-main { color: var(--white) !important; font-weight: 500; font-size: 13px; }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; }
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-gold { background: var(--gold-dim); color: var(--gold); }
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-blue { background: var(--blue-dim); color: var(--blue); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); }
+
+/* Screen items */
+.screen-item { padding: 12px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; cursor: pointer; transition: background 0.15s; }
+.screen-item:last-child { border-bottom: none; }
+.screen-item:hover { background: var(--gold-glow); }
+.sdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.online { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.offline { background: var(--muted); }
+.warning { background: var(--orange); box-shadow: 0 0 5px var(--orange); }
+.screen-info { flex: 1; min-width: 0; }
+.screen-name { font-size: 12px; color: var(--white); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.screen-loc { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; letter-spacing: 0.08em; }
+.screen-meta { text-align: right; flex-shrink: 0; }
+.screen-plays { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--gold); }
+.screen-plays-lbl { font-size: 9px; color: var(--muted); }
+
+/* Chart */
+.chart-wrap { padding: 16px 18px 20px; }
+.chart-bars { display: flex; align-items: flex-end; gap: 8px; height: 72px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.bar { width: 100%; background: var(--gold); border-radius: 1px 1px 0 0; opacity: 0.85; transition: opacity 0.2s; }
+.bar:hover { opacity: 1; }
+.bar.dim { background: var(--surface3); opacity: 1; }
+.bar-lbl { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 0.1em; }
+
+/* Quick actions */
+.qa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); }
+.qa { background: var(--surface); padding: 14px 16px; cursor: pointer; transition: background 0.15s; display: flex; align-items: center; gap: 10px; }
+.qa:hover { background: var(--gold-dim); }
+.qa-icon { font-size: 18px; flex-shrink: 0; }
+.qa-label { font-size: 12px; color: var(--white); font-weight: 500; line-height: 1; }
+.qa-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* Forms */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.form-input, .form-select, .form-textarea {
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 13px;
+  padding: 9px 12px; outline: none; transition: border-color 0.15s; width: 100%; appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold); }
+.form-select option { background: var(--surface2); }
+.form-textarea { resize: vertical; min-height: 80px; }
+
+/* Package selector */
+.pkg-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 12px; }
+.pkg-opt { padding: 10px 8px; border: 1px solid var(--border2); text-align: center; cursor: pointer; transition: all 0.15s; }
+.pkg-opt:hover { border-color: var(--gold); background: var(--gold-glow); }
+.pkg-opt.selected { border-color: var(--gold); background: var(--gold-dim); }
+.pkg-name { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 3px; }
+.pkg-pct { font-size: 11px; color: var(--muted2); }
+.pkg-price { font-family: 'Bebas Neue', sans-serif; font-size: 18px; color: var(--white); line-height: 1; margin-top: 4px; }
+
+/* Auto assign banner */
+.auto-assign { background: var(--green-dim); border: 1px solid rgba(76,175,125,0.2); padding: 10px 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.auto-assign-text { font-size: 11px; color: var(--green); }
+.auto-assign-sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+/* Loading state */
+.loading-state { padding: 40px; text-align: center; }
+.loading-state p { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; }
+
+/* Empty state */
+.empty-state { padding: 40px; text-align: center; }
+.empty-icon { font-size: 32px; margin-bottom: 12px; }
+.empty-title { font-size: 14px; color: var(--white); font-weight: 500; margin-bottom: 6px; }
+.empty-sub { font-size: 12px; color: var(--muted); }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border2); width: 520px; max-width: 95vw; max-height: 85vh; overflow-y: auto; }
+.modal-head { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--white); letter-spacing: 0.06em; }
+.modal-close { cursor: pointer; font-size: 20px; color: var(--muted); transition: color 0.15s; }
+.modal-close:hover { color: var(--white); }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--border2); padding: 14px 20px; font-size: 13px; color: var(--white); z-index: 200; transform: translateY(100px); opacity: 0; transition: all 0.3s; border-left: 3px solid var(--gold); }
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { border-left-color: var(--green); }
+.toast.error { border-left-color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-logo" onclick="navigate('dashboard')"><span>LMN</span></div>
+    <div class="topbar-brand">
+      <div class="topbar-brand-name">Lobby Media</div>
+      <div class="topbar-brand-sub">Network Dashboard</div>
+    </div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-page" id="topbar-page">Dashboard</div>
+    <div class="topbar-right">
+      <div class="topbar-status">
+        <div class="pulse"></div>
+        <span id="online-count">-- screens online</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Icon Rail -->
+  <div class="icon-rail">
+    <div class="rail-icon active" id="rail-dashboard" onclick="navigate('dashboard')" title="Dashboard">▦</div>
+    <div class="rail-icon" id="rail-screens" onclick="navigate('screens')" title="Screens">📺</div>
+    <div class="rail-icon" id="rail-advertisers" onclick="navigate('advertisers')" title="Advertisers">🎯</div>
+    <div class="rail-icon" id="rail-ads" onclick="navigate('ads')" title="Ad Library">🖼</div>
+    <div style="flex:1;"></div>
+    <div class="rail-icon" id="rail-reports" onclick="navigate('reports')" title="Reports">📊</div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="nav-section">Overview</div>
+    <div class="nav-item active" id="nav-dashboard" onclick="navigate('dashboard')"><span class="nav-icon">▦</span> Dashboard</div>
+    <div class="nav-item" id="nav-screens" onclick="navigate('screens')">
+      <span class="nav-icon">📺</span> Screens
+      <span class="nav-badge" id="screen-count-badge">0</span>
+    </div>
+    <div class="nav-item" id="nav-advertisers" onclick="navigate('advertisers')">
+      <span class="nav-icon">🎯</span> Advertisers
+      <span class="nav-badge" id="adv-count-badge">0</span>
+    </div>
+    <div class="nav-item" id="nav-ads" onclick="navigate('ads')"><span class="nav-icon">🖼</span> Ad Library</div>
+
+    <div class="nav-section">Reports</div>
+    <div class="nav-item" id="nav-reports" onclick="navigate('reports')"><span class="nav-icon">📊</span> Play Logs</div>
+
+    <div class="nav-section">Settings</div>
+    <div class="nav-item" id="nav-settings" onclick="navigate('settings')"><span class="nav-icon">⚙️</span> Settings</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+
+    <!-- ══ DASHBOARD VIEW ══ -->
+    <div class="view active" id="view-dashboard">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Dashboard</div>
+          <div class="page-sub" id="dash-date">Loading...</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="loadAll()">↻ Refresh</button>
+          <button class="btn btn-gold" onclick="openModal('modal-add-screen')">+ Add Screen</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Total Plays This Week</div>
+          <div class="stat-val" id="stat-plays">--</div>
+          <div class="stat-change neutral">Business hours only</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Active Screens</div>
+          <div class="stat-val" id="stat-screens">--</div>
+          <div class="stat-change neutral" id="stat-screens-sub">Loading...</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Active Advertisers</div>
+          <div class="stat-val" id="stat-advertisers">--</div>
+          <div class="stat-change neutral">On network</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Monthly Revenue</div>
+          <div class="stat-val" id="stat-revenue">--</div>
+          <div class="stat-change up">Recurring</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <!-- Advertiser table -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Active Advertisers</div>
+              <div class="panel-action" onclick="navigate('advertisers')">View All →</div>
+            </div>
+            <div id="dash-advertisers-table">
+              <div class="loading-state"><p>Loading advertisers...</p></div>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Plays This Week</div>
+              <div class="panel-action">Business Hours Only</div>
+            </div>
+            <div class="chart-wrap">
+              <div class="chart-bars" id="dash-chart">
+                <div class="bar-col"><div class="bar dim" style="height:40px;"></div><div class="bar-lbl">MON</div></div>
+                <div class="bar-col"><div class="bar dim" style="height:40px;"></div><div class="bar-lbl">TUE</div></div>
+                <div class="bar-col"><div class="bar dim" style="height:40px;"></div><div class="bar-lbl">WED</div></div>
+                <div class="bar-col"><div class="bar dim" style="height:40px;"></div><div class="bar-lbl">THU</div></div>
+                <div class="bar-col"><div class="bar dim" style="height:40px;"></div><div class="bar-lbl">FRI</div></div>
+                <div class="bar-col"><div class="bar dim" style="height:40px;"></div><div class="bar-lbl">SAT</div></div>
+                <div class="bar-col"><div class="bar dim" style="height:40px;"></div><div class="bar-lbl">SUN</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <!-- Screen status -->
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Screen Status</div>
+              <div class="panel-action" onclick="navigate('screens')">Manage →</div>
+            </div>
+            <div id="dash-screens-list">
+              <div class="loading-state"><p>Loading screens...</p></div>
+            </div>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Quick Actions</div></div>
+            <div class="qa-grid">
+              <div class="qa" onclick="openModal('modal-add-screen')"><div class="qa-icon">➕</div><div><div class="qa-label">Add Screen</div><div class="qa-sub">Pre-register install</div></div></div>
+              <div class="qa" onclick="openModal('modal-add-advertiser')"><div class="qa-icon">🎯</div><div><div class="qa-label">Add Advertiser</div><div class="qa-sub">Select package</div></div></div>
+              <div class="qa" onclick="openModal('modal-add-ad')"><div class="qa-icon">📤</div><div><div class="qa-label">Upload Ad</div><div class="qa-sub">Image or video</div></div></div>
+              <div class="qa" onclick="navigate('reports')"><div class="qa-icon">📊</div><div><div class="qa-label">View Reports</div><div class="qa-sub">Play logs</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCREENS VIEW ══ -->
+    <div class="view" id="view-screens">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Screens</div>
+          <div class="page-sub">All screen locations on the network</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-add-screen')">+ Add Screen</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">All Screens</div></div>
+        <div id="screens-table"><div class="loading-state"><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ ADVERTISERS VIEW ══ -->
+    <div class="view" id="view-advertisers">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Advertisers</div>
+          <div class="page-sub">Manage your paying advertisers</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-add-advertiser')">+ Add Advertiser</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">All Advertisers</div></div>
+        <div id="advertisers-table"><div class="loading-state"><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ ADS VIEW ══ -->
+    <div class="view" id="view-ads">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Ad Library</div>
+          <div class="page-sub">All ad creatives on the network</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-add-ad')">+ Upload Ad</button>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">All Ads</div></div>
+        <div id="ads-table"><div class="loading-state"><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ REPORTS VIEW ══ -->
+    <div class="view" id="view-reports">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Play Logs</div>
+          <div class="page-sub">All recorded ad plays — business hours only counted</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Recent Plays</div></div>
+        <div id="plays-table"><div class="loading-state"><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ SETTINGS VIEW ══ -->
+    <div class="view" id="view-settings">
+      <div class="page-header">
+        <div><div class="page-title">Settings</div><div class="page-sub">System configuration</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">System Info</div></div>
+        <div style="padding:20px;">
+          <p style="font-size:13px; color:var(--muted2); margin-bottom:8px;">Supabase Project: <span style="color:var(--gold); font-family:'DM Mono',monospace; font-size:11px;">lmbuqdcaionkmhcwwflp</span></p>
+          <p style="font-size:13px; color:var(--muted2); margin-bottom:8px;">Display URL: <span style="color:var(--gold); font-family:'DM Mono',monospace; font-size:11px;">display.lobbymedia.network</span></p>
+          <p style="font-size:13px; color:var(--muted2);">Dashboard URL: <span style="color:var(--gold); font-family:'DM Mono',monospace; font-size:11px;">dashboard.lobbymedia.network</span></p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ MODALS ══ -->
+
+<!-- Add Screen Modal -->
+<div class="modal-overlay" id="modal-add-screen">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Add New Screen</div>
+      <div class="modal-close" onclick="closeModal('modal-add-screen')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Screen ID</div>
+          <input class="form-input" id="new-screen-id" placeholder="SCR-002" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Business Name</div>
+          <input class="form-input" id="new-screen-name" placeholder="Evolve Fitness" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Address</div>
+          <input class="form-input" id="new-screen-address" placeholder="123 Washington Rd" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">City</div>
+          <input class="form-input" id="new-screen-city" placeholder="Evans" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">State</div>
+          <select class="form-select" id="new-screen-state">
+            <option value="GA">Georgia (GA)</option>
+            <option value="SC">South Carolina (SC)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Est. Daily Visitors</div>
+          <input class="form-input" id="new-screen-visitors" type="number" placeholder="50" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Hours Open</div>
+          <input class="form-input" id="new-screen-open" type="time" value="08:00" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Hours Close</div>
+          <input class="form-input" id="new-screen-close" type="time" value="18:00" />
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">News Feed Source</div>
+        <select class="form-select" id="new-screen-feed">
+          <option value="https://feeds.feedburner.com/wrdw/news">WRDW Augusta</option>
+          <option value="https://www.wjbf.com/feed/">WJBF News Channel 6</option>
+          <option value="https://www.aikenstandard.com/feed/">Aiken Standard</option>
+        </select>
+      </div>
+      <div style="background:var(--gold-dim); border:1px solid rgba(201,168,76,0.2); padding:12px 14px; margin-bottom:12px;">
+        <div style="font-size:11px; color:var(--gold); margin-bottom:4px;">Display URL for this screen:</div>
+        <div style="font-family:'DM Mono',monospace; font-size:11px; color:var(--muted2);" id="new-screen-url-preview">display.lobbymedia.network?screen=SCR-002</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-screen')">Cancel</button>
+      <button class="btn btn-gold" onclick="addScreen()">Create Screen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Advertiser Modal -->
+<div class="modal-overlay" id="modal-add-advertiser">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Add Advertiser</div>
+      <div class="modal-close" onclick="closeModal('modal-add-advertiser')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Business Name</div>
+          <input class="form-input" id="new-adv-name" placeholder="Johnson Family Dentistry" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Category / Niche</div>
+          <input class="form-input" id="new-adv-category" placeholder="Dental" />
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Contact Name</div>
+          <input class="form-input" id="new-adv-contact" placeholder="Dr. Johnson" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Email</div>
+          <input class="form-input" id="new-adv-email" placeholder="dr@johnsondds.com" type="email" />
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <div class="form-label">Phone</div>
+        <input class="form-input" id="new-adv-phone" placeholder="(706) 555-0100" />
+      </div>
+
+      <div class="form-label" style="margin-bottom:8px;">Select Package</div>
+      <div class="pkg-grid" id="pkg-selector">
+        <div class="pkg-opt" onclick="selectPkg(this,'basic',33,299)">
+          <div class="pkg-name">Basic</div>
+          <div class="pkg-pct">33% of screens</div>
+          <div class="pkg-price">$299</div>
+        </div>
+        <div class="pkg-opt selected" onclick="selectPkg(this,'standard',50,499)">
+          <div class="pkg-name">Standard</div>
+          <div class="pkg-pct">50% of screens</div>
+          <div class="pkg-price">$499</div>
+        </div>
+        <div class="pkg-opt" onclick="selectPkg(this,'network',75,799)">
+          <div class="pkg-name">Network</div>
+          <div class="pkg-pct">75% of screens</div>
+          <div class="pkg-price">$799</div>
+        </div>
+        <div class="pkg-opt" onclick="selectPkg(this,'exclusive',100,1999)">
+          <div class="pkg-name">Excl.</div>
+          <div class="pkg-pct">100% + lock</div>
+          <div class="pkg-price">$1,999</div>
+        </div>
+      </div>
+
+      <div class="auto-assign" id="auto-assign-info">
+        <div style="font-size:18px;">🔀</div>
+        <div>
+          <div class="auto-assign-text" id="auto-assign-text">Auto-assigning 50% of screens randomly</div>
+          <div class="auto-assign-sub">Re-randomizes weekly for equal exposure</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-advertiser')">Cancel</button>
+      <button class="btn btn-gold" onclick="addAdvertiser()">Create Advertiser & Assign Screens</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Ad Modal -->
+<div class="modal-overlay" id="modal-add-ad">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Upload Ad Creative</div>
+      <div class="modal-close" onclick="closeModal('modal-add-ad')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Advertiser</div>
+        <select class="form-select" id="new-ad-advertiser">
+          <option value="">Select advertiser...</option>
+        </select>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Ad Title (internal)</div>
+          <input class="form-input" id="new-ad-title" placeholder="Spring Campaign" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Ad Type</div>
+          <select class="form-select" id="new-ad-type">
+            <option value="text">Text Ad</option>
+            <option value="image">Image Ad</option>
+            <option value="video">Video Ad</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Headline</div>
+        <input class="form-input" id="new-ad-headline" placeholder="New Patients Welcome" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Subheadline / Eyebrow</div>
+        <input class="form-input" id="new-ad-sub" placeholder="Johnson Family Dentistry · Evans, GA" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Call To Action</div>
+        <input class="form-input" id="new-ad-cta" placeholder="(706) 555-0182" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">File URL (image or video link)</div>
+        <input class="form-input" id="new-ad-url" placeholder="https://... (optional for text ads)" />
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Background Color</div>
+          <input class="form-input" id="new-ad-bg" value="#080808" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">Accent Color</div>
+          <input class="form-input" id="new-ad-accent" value="#c9a84c" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-ad')">Cancel</button>
+      <button class="btn btn-gold" onclick="addAd()">Save Ad</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// LOBBY MEDIA NETWORK — Dashboard v1.0
+// ══════════════════════════════════════════
+
+const SUPABASE_URL = 'https://lmbuqdcaionkmhcwwflp.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxtYnVxZGNhaW9ua21oY3d3ZmxwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwODU1MTgsImV4cCI6MjA5NTY2MTUxOH0.ffrz3WZcIUg5hGzIkSOtREk7ilFQbZzUPIqVyMvXeVA';
+
+let selectedPkg = { name: 'standard', pct: 50, rate: 499 };
+let allScreens = [];
+let allAdvertisers = [];
+let allAds = [];
+
+// ── SUPABASE ──
+async function db(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.method && options.method !== 'GET' ? 'return=representation' : undefined,
+      ...options.headers
+    },
+    ...options
+  });
+  if (!options.method || options.method === 'GET') return res.json();
+  if (res.ok) return res.json().catch(() => null);
+  const err = await res.text();
+  throw new Error(err);
+}
+
+// ── TOAST ──
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast show ${type}`;
+  setTimeout(() => el.className = 'toast', 3000);
+}
+
+// ── NAVIGATION ──
+function navigate(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .rail-icon').forEach(n => n.classList.remove('active'));
+
+  document.getElementById(`view-${view}`)?.classList.add('active');
+  document.getElementById(`nav-${view}`)?.classList.add('active');
+  document.getElementById(`rail-${view}`)?.classList.add('active');
+
+  const titles = { dashboard: 'Dashboard', screens: 'Screens', advertisers: 'Advertisers', ads: 'Ad Library', reports: 'Play Logs', settings: 'Settings' };
+  document.getElementById('topbar-page').textContent = titles[view] || view;
+
+  if (view === 'screens') loadScreensTable();
+  if (view === 'advertisers') loadAdvertisersTable();
+  if (view === 'ads') loadAdsTable();
+  if (view === 'reports') loadPlaysTable();
+}
+
+// ── MODALS ──
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'modal-add-ad') populateAdvertiserSelect();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target === el) el.classList.remove('open');
+  });
+});
+
+// ── PACKAGE SELECTOR ──
+function selectPkg(el, name, pct, rate) {
+  document.querySelectorAll('.pkg-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedPkg = { name, pct, rate };
+  document.getElementById('auto-assign-text').textContent =
+    `Auto-assigning ${pct}% of screens randomly`;
+}
+
+// ── SCREEN URL PREVIEW ──
+document.getElementById('new-screen-id')?.addEventListener('input', function() {
+  document.getElementById('new-screen-url-preview').textContent =
+    `display.lobbymedia.network?screen=${this.value || 'SCR-XXX'}`;
+});
+
+// ── LOAD ALL DATA ──
+async function loadAll() {
+  try {
+    allScreens = await db('screens?select=*&order=created_at.asc') || [];
+    allAdvertisers = await db('advertisers?select=*&order=created_at.desc') || [];
+    allAds = await db('ads?select=*,advertiser:advertisers(business_name)&order=created_at.desc') || [];
+
+    updateDashboardStats();
+    renderDashScreens();
+    renderDashAdvertisers();
+    loadWeeklyChart();
+
+    // Update badges
+    document.getElementById('screen-count-badge').textContent = allScreens.length;
+    document.getElementById('adv-count-badge').textContent = allAdvertisers.filter(a => a.status === 'active').length;
+
+    // Online count
+    const onlineCount = allScreens.filter(s => s.status === 'active').length;
+    document.getElementById('online-count').textContent = `${onlineCount} screens online`;
+
+  } catch (e) {
+    console.error('Load error:', e);
+    toast('Error loading data', 'error');
+  }
+}
+
+// ── DASHBOARD STATS ──
+function updateDashboardStats() {
+  document.getElementById('stat-screens').textContent = allScreens.length;
+  document.getElementById('stat-screens-sub').textContent =
+    `${allScreens.filter(s => s.status === 'active').length} active`;
+  document.getElementById('stat-advertisers').textContent =
+    allAdvertisers.filter(a => a.status === 'active').length;
+
+  const revenue = allAdvertisers
+    .filter(a => a.status === 'active')
+    .reduce((sum, a) => sum + (a.monthly_rate || 0), 0);
+  document.getElementById('stat-revenue').textContent =
+    '$' + revenue.toLocaleString();
+
+  const now = new Date();
+  document.getElementById('dash-date').textContent =
+    `Week of ${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+}
+
+// ── WEEKLY CHART ──
+async function loadWeeklyChart() {
+  try {
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const logs = await db(`play_logs?played_at=gte.${weekAgo}&during_business_hours=eq.true&select=played_at`) || [];
+
+    const dayCounts = [0,0,0,0,0,0,0];
+    logs.forEach(log => {
+      const d = new Date(log.played_at).getDay();
+      dayCounts[d]++;
+    });
+
+    document.getElementById('stat-plays').textContent = logs.length;
+
+    const max = Math.max(...dayCounts, 1);
+    const days = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+    const chart = document.getElementById('dash-chart');
+    chart.innerHTML = dayCounts.map((count, i) => {
+      const height = Math.max((count / max) * 68, 4);
+      const isDim = count === 0;
+      return `<div class="bar-col">
+        <div class="bar ${isDim ? 'dim' : ''}" style="height:${height}px;"></div>
+        <div class="bar-lbl">${days[i]}</div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    console.warn('Chart load failed:', e);
+  }
+}
+
+// ── RENDER DASHBOARD SCREENS ──
+function renderDashScreens() {
+  const container = document.getElementById('dash-screens-list');
+  if (allScreens.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📺</div><div class="empty-title">No screens yet</div><div class="empty-sub">Add your first screen to get started</div></div>`;
+    return;
+  }
+
+  container.innerHTML = allScreens.slice(0, 6).map(s => `
+    <div class="screen-item">
+      <div class="sdot ${s.status === 'active' ? 'online' : 'offline'}"></div>
+      <div class="screen-info">
+        <div class="screen-name">${s.business_name}</div>
+        <div class="screen-loc">${s.city}, ${s.state} · ${s.screen_id}</div>
+      </div>
+      <div class="screen-meta">
+        <div class="screen-plays">${s.status === 'active' ? '●' : '—'}</div>
+        <div class="screen-plays-lbl">${s.status}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── RENDER DASHBOARD ADVERTISERS ──
+function renderDashAdvertisers() {
+  const container = document.getElementById('dash-advertisers-table');
+  if (allAdvertisers.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">No advertisers yet</div><div class="empty-sub">Add your first paying advertiser</div></div>`;
+    return;
+  }
+
+  const pkgColors = { basic: 'badge-green', standard: 'badge-blue', network: 'badge-orange', exclusive: 'badge-gold' };
+
+  container.innerHTML = `<table class="tbl">
+    <thead><tr><th>Business</th><th>Package</th><th>Coverage</th><th>Rate</th><th>Status</th></tr></thead>
+    <tbody>
+      ${allAdvertisers.map(a => `
+        <tr onclick="navigate('advertisers')">
+          <td class="td-main">${a.business_name}</td>
+          <td><span class="badge ${pkgColors[a.package] || 'badge-gold'}">${a.package}</span></td>
+          <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">${a.screen_percentage}%</td>
+          <td style="font-family:'DM Mono',monospace;font-size:11px;">$${a.monthly_rate}/mo</td>
+          <td><span class="badge ${a.status === 'active' ? 'badge-green' : 'badge-gold'}">${a.status}</span></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ── SCREENS TABLE ──
+async function loadScreensTable() {
+  const container = document.getElementById('screens-table');
+  if (allScreens.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">📺</div><div class="empty-title">No screens yet</div><div class="empty-sub">Add your first screen to get started</div></div>`;
+    return;
+  }
+
+  container.innerHTML = `<table class="tbl">
+    <thead><tr><th>Screen ID</th><th>Business</th><th>Location</th><th>Hours</th><th>Est. Visitors</th><th>Status</th><th>Display URL</th></tr></thead>
+    <tbody>
+      ${allScreens.map(s => `
+        <tr>
+          <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">${s.screen_id}</td>
+          <td class="td-main">${s.business_name}</td>
+          <td>${s.city}, ${s.state}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:10px;">${s.business_hours_open?.slice(0,5)} – ${s.business_hours_close?.slice(0,5)}</td>
+          <td>${s.estimated_daily_visitors || '--'}/day</td>
+          <td><span class="badge ${s.status === 'active' ? 'badge-green' : 'badge-gold'}">${s.status}</span></td>
+          <td style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);">?screen=${s.screen_id}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ── ADVERTISERS TABLE ──
+async function loadAdvertisersTable() {
+  const container = document.getElementById('advertisers-table');
+  if (allAdvertisers.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🎯</div><div class="empty-title">No advertisers yet</div><div class="empty-sub">Add your first paying advertiser</div></div>`;
+    return;
+  }
+
+  const pkgColors = { basic: 'badge-green', standard: 'badge-blue', network: 'badge-orange', exclusive: 'badge-gold' };
+
+  container.innerHTML = `<table class="tbl">
+    <thead><tr><th>Business</th><th>Category</th><th>Contact</th><th>Package</th><th>Coverage</th><th>Rate</th><th>Status</th></tr></thead>
+    <tbody>
+      ${allAdvertisers.map(a => `
+        <tr>
+          <td class="td-main">${a.business_name}</td>
+          <td>${a.category || '--'}</td>
+          <td>${a.contact_name || '--'}</td>
+          <td><span class="badge ${pkgColors[a.package] || 'badge-gold'}">${a.package}</span></td>
+          <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">${a.screen_percentage}%</td>
+          <td style="font-family:'DM Mono',monospace;font-size:11px;">$${a.monthly_rate}/mo</td>
+          <td><span class="badge ${a.status === 'active' ? 'badge-green' : 'badge-gold'}">${a.status}</span></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ── ADS TABLE ──
+async function loadAdsTable() {
+  const container = document.getElementById('ads-table');
+  if (allAds.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">🖼</div><div class="empty-title">No ads yet</div><div class="empty-sub">Upload your first ad creative</div></div>`;
+    return;
+  }
+
+  container.innerHTML = `<table class="tbl">
+    <thead><tr><th>Title</th><th>Advertiser</th><th>Type</th><th>Headline</th><th>CTA</th><th>Active</th></tr></thead>
+    <tbody>
+      ${allAds.map(a => `
+        <tr>
+          <td class="td-main">${a.title}</td>
+          <td>${a.advertiser?.business_name || '--'}</td>
+          <td><span class="badge badge-blue">${a.type}</span></td>
+          <td>${a.headline || '--'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:10px;">${a.cta || '--'}</td>
+          <td><span class="badge ${a.active ? 'badge-green' : 'badge-red'}">${a.active ? 'Active' : 'Paused'}</span></td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ── PLAYS TABLE ──
+async function loadPlaysTable() {
+  const container = document.getElementById('plays-table');
+  try {
+    const logs = await db('play_logs?select=*,screen:screens(business_name,screen_id),ad:ads(title,headline)&order=played_at.desc&limit=50') || [];
+
+    if (logs.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-title">No plays yet</div><div class="empty-sub">Play logs will appear once screens are running ads</div></div>`;
+      return;
+    }
+
+    container.innerHTML = `<table class="tbl">
+      <thead><tr><th>Time</th><th>Screen</th><th>Ad</th><th>Duration</th><th>Business Hours</th></tr></thead>
+      <tbody>
+        ${logs.map(l => `
+          <tr>
+            <td style="font-family:'DM Mono',monospace;font-size:10px;">${new Date(l.played_at).toLocaleString()}</td>
+            <td class="td-main">${l.screen?.business_name || '--'} <span style="color:var(--muted);font-size:10px;">${l.screen?.screen_id || ''}</span></td>
+            <td>${l.ad?.title || l.ad?.headline || '--'}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:10px;">${l.duration_seconds || '--'}s</td>
+            <td><span class="badge ${l.during_business_hours ? 'badge-green' : 'badge-red'}">${l.during_business_hours ? '✓ Yes' : '✗ No'}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+  } catch(e) {
+    container.innerHTML = `<div class="loading-state"><p>Error loading plays</p></div>`;
+  }
+}
+
+// ── ADD SCREEN ──
+async function addScreen() {
+  const screenId = document.getElementById('new-screen-id').value.trim();
+  const name = document.getElementById('new-screen-name').value.trim();
+  const address = document.getElementById('new-screen-address').value.trim();
+  const city = document.getElementById('new-screen-city').value.trim();
+  const state = document.getElementById('new-screen-state').value;
+  const visitors = parseInt(document.getElementById('new-screen-visitors').value) || 50;
+  const open = document.getElementById('new-screen-open').value;
+  const close = document.getElementById('new-screen-close').value;
+  const feed = document.getElementById('new-screen-feed').value;
+
+  if (!screenId || !name || !city) {
+    toast('Please fill in Screen ID, Business Name, and City', 'error');
+    return;
+  }
+
+  try {
+    await db('screens', {
+      method: 'POST',
+      body: JSON.stringify({
+        screen_id: screenId,
+        business_name: name,
+        address,
+        city,
+        state,
+        estimated_daily_visitors: visitors,
+        business_hours_open: open,
+        business_hours_close: close,
+        news_feed_url: feed,
+        news_feed_source: feed.includes('wrdw') ? 'WRDW Augusta' : feed.includes('wjbf') ? 'WJBF News' : 'Aiken Standard',
+        days_open: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        status: 'active'
+      })
+    });
+
+    toast(`Screen ${screenId} created successfully!`);
+    closeModal('modal-add-screen');
+    await loadAll();
+
+    // Clear form
+    ['new-screen-id','new-screen-name','new-screen-address','new-screen-city','new-screen-visitors'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  } catch(e) {
+    toast('Error creating screen: ' + e.message, 'error');
+  }
+}
+
+// ── ADD ADVERTISER ──
+async function addAdvertiser() {
+  const name = document.getElementById('new-adv-name').value.trim();
+  const category = document.getElementById('new-adv-category').value.trim();
+  const contact = document.getElementById('new-adv-contact').value.trim();
+  const email = document.getElementById('new-adv-email').value.trim();
+  const phone = document.getElementById('new-adv-phone').value.trim();
+
+  if (!name) { toast('Business name is required', 'error'); return; }
+
+  try {
+    const result = await db('advertisers', {
+      method: 'POST',
+      body: JSON.stringify({
+        business_name: name,
+        category,
+        contact_name: contact,
+        email,
+        phone,
+        package: selectedPkg.name,
+        screen_percentage: selectedPkg.pct,
+        monthly_rate: selectedPkg.rate,
+        status: 'active'
+      })
+    });
+
+    // Auto-assign screens
+    if (result && result[0] && allScreens.length > 0) {
+      const advId = result[0].id;
+      const count = Math.ceil(allScreens.length * selectedPkg.pct / 100);
+      const shuffled = [...allScreens].sort(() => Math.random() - 0.5).slice(0, count);
+
+      for (const screen of shuffled) {
+        await db('screen_ad_assignments', {
+          method: 'POST',
+          body: JSON.stringify({ screen_id: screen.id, ad_id: null })
+        }).catch(() => {});
+      }
+    }
+
+    toast(`${name} added as ${selectedPkg.name} advertiser!`);
+    closeModal('modal-add-advertiser');
+    await loadAll();
+
+    ['new-adv-name','new-adv-category','new-adv-contact','new-adv-email','new-adv-phone'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  } catch(e) {
+    toast('Error adding advertiser: ' + e.message, 'error');
+  }
+}
+
+// ── POPULATE ADVERTISER SELECT ──
+async function populateAdvertiserSelect() {
+  const select = document.getElementById('new-ad-advertiser');
+  select.innerHTML = '<option value="">Select advertiser...</option>' +
+    allAdvertisers.map(a => `<option value="${a.id}">${a.business_name}</option>`).join('');
+}
+
+// ── ADD AD ──
+async function addAd() {
+  const advertiserId = document.getElementById('new-ad-advertiser').value;
+  const title = document.getElementById('new-ad-title').value.trim();
+  const type = document.getElementById('new-ad-type').value;
+  const headline = document.getElementById('new-ad-headline').value.trim();
+  const sub = document.getElementById('new-ad-sub').value.trim();
+  const cta = document.getElementById('new-ad-cta').value.trim();
+  const url = document.getElementById('new-ad-url').value.trim();
+  const bg = document.getElementById('new-ad-bg').value.trim();
+  const accent = document.getElementById('new-ad-accent').value.trim();
+
+  if (!advertiserId || !title) { toast('Advertiser and title are required', 'error'); return; }
+
+  try {
+    const adResult = await db('ads', {
+      method: 'POST',
+      body: JSON.stringify({
+        advertiser_id: advertiserId,
+        title, type, headline,
+        headline_sub: sub,
+        cta,
+        file_url: url || null,
+        bg_color: bg || '#080808',
+        accent_color: accent || '#c9a84c',
+        active: true
+      })
+    });
+
+    // Auto-assign to advertiser's screens
+    if (adResult && adResult[0]) {
+      const adId = adResult[0].id;
+      const advertiser = allAdvertisers.find(a => a.id === advertiserId);
+      if (advertiser) {
+        const count = Math.ceil(allScreens.length * advertiser.screen_percentage / 100);
+        const shuffled = [...allScreens].sort(() => Math.random() - 0.5).slice(0, count);
+
+        for (const screen of shuffled) {
+          await db('screen_ad_assignments', {
+            method: 'POST',
+            body: JSON.stringify({ screen_id: screen.id, ad_id: adId })
+          }).catch(() => {});
+        }
+      }
+    }
+
+    toast('Ad saved and assigned to screens!');
+    closeModal('modal-add-ad');
+    await loadAll();
+
+    ['new-ad-title','new-ad-headline','new-ad-sub','new-ad-cta','new-ad-url'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  } catch(e) {
+    toast('Error saving ad: ' + e.message, 'error');
+  }
+}
+
+// ── INIT ──
+const now = new Date();
+document.getElementById('dash-date').textContent =
+  `Week of ${now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+
+loadAll();
+setInterval(loadAll, 60000); // Refresh every minute
+</script>
+</body>
+</html>

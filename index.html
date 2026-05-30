@@ -687,6 +687,127 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
   </div>
 </div>
 
+<!-- Edit Ad Modal -->
+<div class="modal-overlay" id="modal-edit-ad">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Edit Ad</div>
+      <div class="modal-close" onclick="closeModal('modal-edit-ad')">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-ad-id"/>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Ad Title</div>
+          <input class="form-input" id="edit-ad-title"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Type</div>
+          <select class="form-select" id="edit-ad-type">
+            <option value="text">Text Ad</option>
+            <option value="image">Image Ad</option>
+            <option value="video">Video Ad</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Headline</div>
+        <input class="form-input" id="edit-ad-headline"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Subheadline</div>
+        <input class="form-input" id="edit-ad-sub"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Call To Action</div>
+        <input class="form-input" id="edit-ad-cta"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">File URL</div>
+        <input class="form-input" id="edit-ad-url"/>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Duration (seconds)</div>
+          <input class="form-input" id="edit-ad-duration" type="number" min="3" max="60"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Status</div>
+          <select class="form-select" id="edit-ad-active">
+            <option value="true">Active</option>
+            <option value="false">Paused</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Background Color</div>
+          <input class="form-input" id="edit-ad-bg"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Accent Color</div>
+          <input class="form-input" id="edit-ad-accent"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-ad')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveEditAd()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Advertiser Modal -->
+<div class="modal-overlay" id="modal-edit-advertiser">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Edit Advertiser</div>
+      <div class="modal-close" onclick="closeModal('modal-edit-advertiser')">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-adv-id"/>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Business Name</div>
+          <input class="form-input" id="edit-adv-name"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Category</div>
+          <input class="form-input" id="edit-adv-category"/>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Contact Name</div>
+          <input class="form-input" id="edit-adv-contact"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Email</div>
+          <input class="form-input" id="edit-adv-email" type="email"/>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Phone</div>
+          <input class="form-input" id="edit-adv-phone"/>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Status</div>
+          <select class="form-select" id="edit-adv-status">
+            <option value="active">Active</option>
+            <option value="paused">Paused</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-advertiser')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveEditAdvertiser()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -946,7 +1067,7 @@ async function loadAdvertisersTable() {
   const pkgColors = { basic: 'badge-green', standard: 'badge-blue', network: 'badge-orange', exclusive: 'badge-gold' };
 
   container.innerHTML = `<table class="tbl">
-    <thead><tr><th>Business</th><th>Category</th><th>Contact</th><th>Package</th><th>Coverage</th><th>Rate</th><th>Status</th></tr></thead>
+    <thead><tr><th>Business</th><th>Category</th><th>Contact</th><th>Package</th><th>Coverage</th><th>Rate</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
       ${allAdvertisers.map(a => `
         <tr>
@@ -957,6 +1078,10 @@ async function loadAdvertisersTable() {
           <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">${a.screen_percentage}%</td>
           <td style="font-family:'DM Mono',monospace;font-size:11px;">$${a.monthly_rate}/mo</td>
           <td><span class="badge ${a.status === 'active' ? 'badge-green' : 'badge-gold'}">${a.status}</span></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-outline btn-sm" style="margin-right:4px;" onclick="editAdvertiser('${a.id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAdvertiser('${a.id}','${a.business_name}')">Delete</button>
+          </td>
         </tr>
       `).join('')}
     </tbody>
@@ -972,7 +1097,7 @@ async function loadAdsTable() {
   }
 
   container.innerHTML = `<table class="tbl">
-    <thead><tr><th>Title</th><th>Advertiser</th><th>Type</th><th>Headline</th><th>CTA</th><th>Active</th></tr></thead>
+    <thead><tr><th>Title</th><th>Advertiser</th><th>Type</th><th>Headline</th><th>Duration</th><th>CTA</th><th>Active</th><th>Actions</th></tr></thead>
     <tbody>
       ${allAds.map(a => `
         <tr>
@@ -980,8 +1105,13 @@ async function loadAdsTable() {
           <td>${a.advertiser?.business_name || '--'}</td>
           <td><span class="badge badge-blue">${a.type}</span></td>
           <td>${a.headline || '--'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">${a.duration_seconds || 9}s</td>
           <td style="font-family:'DM Mono',monospace;font-size:10px;">${a.cta || '--'}</td>
           <td><span class="badge ${a.active ? 'badge-green' : 'badge-red'}">${a.active ? 'Active' : 'Paused'}</span></td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-outline btn-sm" style="margin-right:4px;" onclick="editAd('${a.id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAd('${a.id}','${a.title}')">Delete</button>
+          </td>
         </tr>
       `).join('')}
     </tbody>
@@ -1181,6 +1311,118 @@ async function addAd() {
     });
   } catch(e) {
     toast('Error saving ad: ' + e.message, 'error');
+  }
+}
+
+// ── EDIT AD ──
+function editAd(id) {
+  const ad = allAds.find(a => a.id === id);
+  if (!ad) return;
+  document.getElementById('edit-ad-id').value = ad.id;
+  document.getElementById('edit-ad-title').value = ad.title || '';
+  document.getElementById('edit-ad-type').value = ad.type || 'text';
+  document.getElementById('edit-ad-headline').value = ad.headline || '';
+  document.getElementById('edit-ad-sub').value = ad.headline_sub || '';
+  document.getElementById('edit-ad-cta').value = ad.cta || '';
+  document.getElementById('edit-ad-url').value = ad.file_url || '';
+  document.getElementById('edit-ad-duration').value = ad.duration_seconds || 9;
+  document.getElementById('edit-ad-active').value = ad.active ? 'true' : 'false';
+  document.getElementById('edit-ad-bg').value = ad.bg_color || '#080808';
+  document.getElementById('edit-ad-accent').value = ad.accent_color || '#c9a84c';
+  openModal('modal-edit-ad');
+}
+
+async function saveEditAd() {
+  const id = document.getElementById('edit-ad-id').value;
+  try {
+    await db(`ads?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        title: document.getElementById('edit-ad-title').value,
+        type: document.getElementById('edit-ad-type').value,
+        headline: document.getElementById('edit-ad-headline').value,
+        headline_sub: document.getElementById('edit-ad-sub').value,
+        cta: document.getElementById('edit-ad-cta').value,
+        file_url: document.getElementById('edit-ad-url').value || null,
+        duration_seconds: parseInt(document.getElementById('edit-ad-duration').value) || 9,
+        active: document.getElementById('edit-ad-active').value === 'true',
+        bg_color: document.getElementById('edit-ad-bg').value,
+        accent_color: document.getElementById('edit-ad-accent').value,
+      })
+    });
+    toast('Ad updated successfully!');
+    closeModal('modal-edit-ad');
+    await loadAll();
+    loadAdsTable();
+  } catch(e) {
+    toast('Error updating ad: ' + e.message, 'error');
+  }
+}
+
+async function deleteAd(id, title) {
+  if (!confirm(`Delete ad "${title}"? This cannot be undone.`)) return;
+  try {
+    await db(`screen_ad_assignments?ad_id=eq.${id}`, { method: 'DELETE' });
+    await db(`ads?id=eq.${id}`, { method: 'DELETE' });
+    toast(`Ad "${title}" deleted.`);
+    await loadAll();
+    loadAdsTable();
+  } catch(e) {
+    toast('Error deleting ad: ' + e.message, 'error');
+  }
+}
+
+// ── EDIT ADVERTISER ──
+function editAdvertiser(id) {
+  const adv = allAdvertisers.find(a => a.id === id);
+  if (!adv) return;
+  document.getElementById('edit-adv-id').value = adv.id;
+  document.getElementById('edit-adv-name').value = adv.business_name || '';
+  document.getElementById('edit-adv-category').value = adv.category || '';
+  document.getElementById('edit-adv-contact').value = adv.contact_name || '';
+  document.getElementById('edit-adv-email').value = adv.email || '';
+  document.getElementById('edit-adv-phone').value = adv.phone || '';
+  document.getElementById('edit-adv-status').value = adv.status || 'active';
+  openModal('modal-edit-advertiser');
+}
+
+async function saveEditAdvertiser() {
+  const id = document.getElementById('edit-adv-id').value;
+  try {
+    await db(`advertisers?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        business_name: document.getElementById('edit-adv-name').value,
+        category: document.getElementById('edit-adv-category').value,
+        contact_name: document.getElementById('edit-adv-contact').value,
+        email: document.getElementById('edit-adv-email').value,
+        phone: document.getElementById('edit-adv-phone').value,
+        status: document.getElementById('edit-adv-status').value,
+      })
+    });
+    toast('Advertiser updated successfully!');
+    closeModal('modal-edit-advertiser');
+    await loadAll();
+    loadAdvertisersTable();
+  } catch(e) {
+    toast('Error updating advertiser: ' + e.message, 'error');
+  }
+}
+
+async function deleteAdvertiser(id, name) {
+  if (!confirm(`Delete advertiser "${name}"? This will also delete all their ads and screen assignments.`)) return;
+  try {
+    const ads = await db(`ads?advertiser_id=eq.${id}&select=id`);
+    for (const ad of (ads || [])) {
+      await db(`screen_ad_assignments?ad_id=eq.${ad.id}`, { method: 'DELETE' });
+    }
+    await db(`ads?advertiser_id=eq.${id}`, { method: 'DELETE' });
+    await db(`advertisers?id=eq.${id}`, { method: 'DELETE' });
+    toast(`Advertiser "${name}" deleted.`);
+    await loadAll();
+    loadAdvertisersTable();
+  } catch(e) {
+    toast('Error deleting advertiser: ' + e.message, 'error');
   }
 }
 

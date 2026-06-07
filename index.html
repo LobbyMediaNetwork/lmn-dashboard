@@ -246,6 +246,24 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
 .modal-body { padding: 24px; }
 .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
 
+/* Playlist */
+.playlist-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  cursor: grab; transition: background 0.15s; user-select: none;
+  background: var(--surface);
+}
+.playlist-item:last-child { border-bottom: none; }
+.playlist-item:hover { background: var(--gold-glow); }
+.playlist-item.pl-inactive { opacity: 0.4; }
+.playlist-item.drag-over { border-top: 2px solid var(--gold); }
+.pl-handle { color: var(--muted); font-size: 18px; cursor: grab; flex-shrink: 0; }
+.pl-pos { font-family: "DM Mono", monospace; font-size: 11px; color: var(--muted); width: 20px; text-align: center; flex-shrink: 0; }
+.pl-icon { font-size: 20px; flex-shrink: 0; }
+.pl-info { flex: 1; min-width: 0; }
+.pl-name { font-size: 13px; color: var(--white); font-weight: 500; }
+.pl-meta { font-family: "DM Mono", monospace; font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 0.08em; }
+
 /* Toast */
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--surface2); border: 1px solid var(--border2); padding: 14px 20px; font-size: 13px; color: var(--white); z-index: 200; transform: translateY(100px); opacity: 0; transition: all 0.3s; border-left: 3px solid var(--gold); }
 .toast.show { transform: translateY(0); opacity: 1; }
@@ -281,6 +299,7 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
     <div class="rail-icon" id="rail-advertisers" onclick="navigate('advertisers')" title="Advertisers">🎯</div>
     <div class="rail-icon" id="rail-ads" onclick="navigate('ads')" title="Ad Library">🖼</div>
     <div class="rail-icon" id="rail-videos" onclick="navigate('videos')" title="Stock Videos">🎬</div>
+    <div class="rail-icon" id="rail-playlist" onclick="navigate('playlist')" title="Playlist">▶️</div>
     <div style="flex:1;"></div>
     <div class="rail-icon" id="rail-reports" onclick="navigate('reports')" title="Reports">📊</div>
   </div>
@@ -299,6 +318,7 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
     </div>
     <div class="nav-item" id="nav-ads" onclick="navigate('ads')"><span class="nav-icon">🖼</span> Ad Library</div>
     <div class="nav-item" id="nav-videos" onclick="navigate('videos')"><span class="nav-icon">🎬</span> Stock Videos</div>
+    <div class="nav-item" id="nav-playlist" onclick="navigate('playlist')"><span class="nav-icon">▶️</span> Playlist</div>
 
     <div class="nav-item" id="nav-map" onclick="window.open('map.html','_blank')"><span class="nav-icon">🗺</span> Screen Map</div>
 
@@ -474,6 +494,38 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
       <div class="panel">
         <div class="panel-head"><div class="panel-title">Stock Video Library</div></div>
         <div id="videos-table"><div class="loading-state"><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ PLAYLIST VIEW ══ -->
+    <div class="view" id="view-playlist">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Playlist</div>
+          <div class="page-sub">Drag to reorder — changes apply to all screens within the hour</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-outline" onclick="loadPlaylist()">↻ Refresh</button>
+          <button class="btn btn-gold" onclick="openModal('modal-add-playlist-item')">+ Add Slide</button>
+        </div>
+      </div>
+
+      <div style="background:var(--gold-dim); border:1px solid rgba(201,168,76,0.2); padding:14px 18px; margin-bottom:16px; display:flex; align-items:flex-start; gap:14px;">
+        <div style="font-size:20px; flex-shrink:0;">💡</div>
+        <div>
+          <div style="font-size:12px; color:var(--gold); font-weight:500; margin-bottom:4px;">How the playlist works</div>
+          <div style="font-size:11px; color:var(--muted2); line-height:1.6;">Drag slides up and down to reorder. The display app plays them in exact order then loops. Changes are saved instantly and picked up by screens within the hour. You can have multiple ads, stock videos, weather slides and promos in any order you want.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Current Playlist — All Screens</div>
+          <div class="panel-action" id="playlist-save-btn" onclick="savePlaylistOrder()" style="color:var(--gold);display:none;">💾 Save Order</div>
+        </div>
+        <div id="playlist-container" style="padding:8px;">
+          <div class="loading-state"><p>Loading playlist...</p></div>
+        </div>
       </div>
     </div>
 
@@ -712,6 +764,41 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modal-add-ad')">Cancel</button>
       <button class="btn btn-gold" onclick="addAd()">Save Ad</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Playlist Item Modal -->
+<div class="modal-overlay" id="modal-add-playlist-item">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Add Slide to Playlist</div>
+      <div class="modal-close" onclick="closeModal('modal-add-playlist-item')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Slide Type</div>
+        <select class="form-select" id="new-pl-type" onchange="updatePlaylistForm()">
+          <option value="weather">Weather Slide</option>
+          <option value="promo">LMN Promo</option>
+          <option value="stock">Stock Video</option>
+          <option value="ad">Advertiser Ad</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;" id="pl-content-group">
+        <div class="form-label">Select Content</div>
+        <select class="form-select" id="new-pl-content">
+          <option value="">-- Select --</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Duration (seconds)</div>
+        <input class="form-input" id="new-pl-duration" type="number" value="9" min="3" max="120"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-playlist-item')">Cancel</button>
+      <button class="btn btn-gold" onclick="addPlaylistItem()">Add to Playlist</button>
     </div>
   </div>
 </div>
@@ -994,7 +1081,7 @@ function navigate(view) {
   document.getElementById(`nav-${view}`)?.classList.add('active');
   document.getElementById(`rail-${view}`)?.classList.add('active');
 
-  const titles = { dashboard: 'Dashboard', screens: 'Screens', advertisers: 'Advertisers', ads: 'Ad Library', videos: 'Stock Videos', reports: 'Play Logs', settings: 'Settings' };
+  const titles = { dashboard: 'Dashboard', screens: 'Screens', advertisers: 'Advertisers', ads: 'Ad Library', videos: 'Stock Videos', playlist: 'Playlist', reports: 'Play Logs', settings: 'Settings' };
   document.getElementById('topbar-page').textContent = titles[view] || view;
 
   if (view === 'screens') loadScreensTable();
@@ -1002,6 +1089,7 @@ function navigate(view) {
   if (view === 'ads') loadAdsTable();
   if (view === 'reports') loadPlaysTable();
   if (view === 'videos') loadVideosTable();
+  if (view === 'playlist') { loadPlaylist(); updatePlaylistForm(); }
 }
 
 // ── MODALS ──
@@ -1678,6 +1766,205 @@ async function deleteAdvertiser(id, name) {
     loadAdvertisersTable();
   } catch(e) {
     toast('Error deleting advertiser: ' + e.message, 'error');
+  }
+}
+
+// ── PLAYLIST ──
+let playlistItems = [];
+let dragSrcIndex = null;
+
+const typeIcons = {
+  weather: '☀️', promo: '📺', stock: '🎬', ad: '🎯'
+};
+
+const typeColors = {
+  weather: 'badge-blue', promo: 'badge-gold', stock: 'badge-green', ad: 'badge-orange'
+};
+
+async function loadPlaylist() {
+  const container = document.getElementById('playlist-container');
+  if (!container) return;
+
+  try {
+    playlistItems = await db('playlist?screen_id=eq.ALL&order=position.asc&select=*') || [];
+
+    if (playlistItems.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">▶️</div>
+        <div class="empty-title">No playlist yet</div>
+        <div class="empty-sub">Add slides to build your playlist</div>
+      </div>`;
+      return;
+    }
+
+    renderPlaylist();
+  } catch(e) {
+    container.innerHTML = `<div class="loading-state"><p>Error loading playlist</p></div>`;
+  }
+}
+
+function renderPlaylist() {
+  const container = document.getElementById('playlist-container');
+  container.innerHTML = playlistItems.map((item, index) => `
+    <div class="playlist-item ${!item.active ? 'pl-inactive' : ''}"
+      draggable="true"
+      data-index="${index}"
+      ondragstart="plDragStart(event, ${index})"
+      ondragover="plDragOver(event)"
+      ondrop="plDrop(event, ${index})"
+      ondragend="plDragEnd(event)">
+      <div class="pl-handle">⠿</div>
+      <div class="pl-pos">${index + 1}</div>
+      <div class="pl-icon">${typeIcons[item.content_type] || '▶️'}</div>
+      <div class="pl-info">
+        <div class="pl-name">${item.label || item.content_type}</div>
+        <div class="pl-meta">${item.content_type} · ${item.duration_seconds}s</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+        <span class="badge ${typeColors[item.content_type] || 'badge-gold'}">${item.content_type}</span>
+        <button class="btn btn-outline btn-sm" onclick="togglePlaylistItem('${item.id}', ${item.active})">
+          ${item.active ? 'Pause' : 'Resume'}
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="deletePlaylistItem('${item.id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Drag and drop
+function plDragStart(e, index) {
+  dragSrcIndex = index;
+  e.target.style.opacity = '0.4';
+  document.getElementById('playlist-save-btn').style.display = 'block';
+}
+
+function plDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function plDrop(e, targetIndex) {
+  e.preventDefault();
+  if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+  const moved = playlistItems.splice(dragSrcIndex, 1)[0];
+  playlistItems.splice(targetIndex, 0, moved);
+  renderPlaylist();
+}
+
+function plDragEnd(e) {
+  e.target.style.opacity = '1';
+  dragSrcIndex = null;
+}
+
+async function savePlaylistOrder() {
+  try {
+    for (let i = 0; i < playlistItems.length; i++) {
+      await db(`playlist?id=eq.${playlistItems[i].id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ position: i + 1 })
+      });
+    }
+    document.getElementById('playlist-save-btn').style.display = 'none';
+    toast('Playlist order saved!');
+  } catch(e) {
+    toast('Error saving playlist: ' + e.message, 'error');
+  }
+}
+
+async function togglePlaylistItem(id, active) {
+  try {
+    await db(`playlist?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active: !active })
+    });
+    await loadPlaylist();
+    toast(active ? 'Slide paused' : 'Slide resumed');
+  } catch(e) {
+    toast('Error updating slide', 'error');
+  }
+}
+
+async function deletePlaylistItem(id) {
+  if (!confirm('Remove this slide from the playlist?')) return;
+  try {
+    await db(`playlist?id=eq.${id}`, { method: 'DELETE' });
+    await loadPlaylist();
+    toast('Slide removed');
+  } catch(e) {
+    toast('Error removing slide', 'error');
+  }
+}
+
+async function updatePlaylistForm() {
+  const type = document.getElementById('new-pl-type').value;
+  const select = document.getElementById('new-pl-content');
+  const group = document.getElementById('pl-content-group');
+
+  if (type === 'weather' || type === 'promo') {
+    group.style.display = 'none';
+    document.getElementById('new-pl-duration').value = type === 'weather' ? 12 : 9;
+    return;
+  }
+
+  group.style.display = 'block';
+  select.innerHTML = '<option value="">-- Select --</option>';
+
+  if (type === 'stock') {
+    const videos = await db('stock_videos?active=eq.true&select=id,title,duration_seconds') || [];
+    videos.forEach(v => {
+      select.innerHTML += `<option value="${v.id}" data-dur="${v.duration_seconds}">${v.title}</option>`;
+    });
+    document.getElementById('new-pl-duration').value = 15;
+  } else if (type === 'ad') {
+    const ads = await db('ads?active=eq.true&select=id,title,duration_seconds') || [];
+    ads.forEach(a => {
+      select.innerHTML += `<option value="${a.id}" data-dur="${a.duration_seconds}">${a.title}</option>`;
+    });
+    document.getElementById('new-pl-duration').value = 9;
+  }
+
+  // Auto-update duration when content is selected
+  select.onchange = () => {
+    const opt = select.options[select.selectedIndex];
+    if (opt && opt.dataset.dur) {
+      document.getElementById('new-pl-duration').value = opt.dataset.dur;
+    }
+  };
+}
+
+async function addPlaylistItem() {
+  const type = document.getElementById('new-pl-type').value;
+  const contentId = document.getElementById('new-pl-content').value || null;
+  const duration = parseInt(document.getElementById('new-pl-duration').value) || 9;
+
+  // Get label
+  const labels = { weather: 'Weather Slide', promo: 'LMN Promo' };
+  let label = labels[type] || '';
+  if (!label && contentId) {
+    const opt = document.getElementById('new-pl-content').options[document.getElementById('new-pl-content').selectedIndex];
+    label = opt ? opt.text : type;
+  }
+
+  const nextPos = playlistItems.length + 1;
+
+  try {
+    await db('playlist', {
+      method: 'POST',
+      body: JSON.stringify({
+        screen_id: 'ALL',
+        position: nextPos,
+        content_type: type,
+        content_id: contentId,
+        label,
+        duration_seconds: duration,
+        active: true
+      })
+    });
+    toast(`${label} added to playlist!`);
+    closeModal('modal-add-playlist-item');
+    await loadPlaylist();
+  } catch(e) {
+    toast('Error adding slide: ' + e.message, 'error');
   }
 }
 

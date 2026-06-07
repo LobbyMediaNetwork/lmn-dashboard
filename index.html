@@ -280,6 +280,7 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
     <div class="rail-icon" id="rail-screens" onclick="navigate('screens')" title="Screens">📺</div>
     <div class="rail-icon" id="rail-advertisers" onclick="navigate('advertisers')" title="Advertisers">🎯</div>
     <div class="rail-icon" id="rail-ads" onclick="navigate('ads')" title="Ad Library">🖼</div>
+    <div class="rail-icon" id="rail-videos" onclick="navigate('videos')" title="Stock Videos">🎬</div>
     <div style="flex:1;"></div>
     <div class="rail-icon" id="rail-reports" onclick="navigate('reports')" title="Reports">📊</div>
   </div>
@@ -297,6 +298,7 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
       <span class="nav-badge" id="adv-count-badge">0</span>
     </div>
     <div class="nav-item" id="nav-ads" onclick="navigate('ads')"><span class="nav-icon">🖼</span> Ad Library</div>
+    <div class="nav-item" id="nav-videos" onclick="navigate('videos')"><span class="nav-icon">🎬</span> Stock Videos</div>
 
     <div class="nav-section">Reports</div>
     <div class="nav-item" id="nav-reports" onclick="navigate('reports')"><span class="nav-icon">📊</span> Play Logs</div>
@@ -445,6 +447,31 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
       <div class="panel">
         <div class="panel-head"><div class="panel-title">All Ads</div></div>
         <div id="ads-table"><div class="loading-state"><p>Loading...</p></div></div>
+      </div>
+    </div>
+
+    <!-- ══ STOCK VIDEOS VIEW ══ -->
+    <div class="view" id="view-videos">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Stock Videos</div>
+          <div class="page-sub">Ambient and filler content for your screens</div>
+        </div>
+        <button class="btn btn-gold" onclick="openModal('modal-add-video')">+ Add Video</button>
+      </div>
+
+      <!-- How to host videos info box -->
+      <div style="background:var(--gold-dim); border:1px solid rgba(201,168,76,0.2); padding:14px 18px; margin-bottom:16px; display:flex; align-items:flex-start; gap:14px;">
+        <div style="font-size:20px; flex-shrink:0;">💡</div>
+        <div>
+          <div style="font-size:12px; color:var(--gold); font-weight:500; margin-bottom:4px;">How to host your videos</div>
+          <div style="font-size:11px; color:var(--muted2); line-height:1.6;">Upload your MP4 to <strong style="color:var(--white);">Cloudinary.com</strong> (free), <strong style="color:var(--white);">Google Drive</strong> (share as public link), or <strong style="color:var(--white);">Supabase Storage</strong>. Paste the public URL below. Videos must be publicly accessible for screens to play them.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="panel-title">Stock Video Library</div></div>
+        <div id="videos-table"><div class="loading-state"><p>Loading...</p></div></div>
       </div>
     </div>
 
@@ -687,6 +714,106 @@ html, body { height: 100%; background: var(--bg); color: var(--white); font-fami
   </div>
 </div>
 
+<!-- Add Stock Video Modal -->
+<div class="modal-overlay" id="modal-add-video">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Add Stock Video</div>
+      <div class="modal-close" onclick="closeModal('modal-add-video')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Title</div>
+        <input class="form-input" id="new-video-title" placeholder="Georgia Pine Forest — Golden Hour"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Video URL (public MP4 link)</div>
+        <input class="form-input" id="new-video-url" placeholder="https://res.cloudinary.com/..."/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Thumbnail URL (optional)</div>
+        <input class="form-input" id="new-video-thumb" placeholder="https://... (leave blank if none)"/>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Category</div>
+          <select class="form-select" id="new-video-category">
+            <option value="ambient">Ambient / Nature</option>
+            <option value="community">Community / City</option>
+            <option value="lifestyle">Lifestyle</option>
+            <option value="abstract">Abstract / Motion Graphics</option>
+            <option value="seasonal">Seasonal</option>
+            <option value="promo">LMN Promo</option>
+            <option value="advertiser">Advertiser Ad</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Duration (seconds)</div>
+          <input class="form-input" id="new-video-duration" type="number" value="15" min="3" max="60"/>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Description (optional)</div>
+        <textarea class="form-textarea" id="new-video-desc" placeholder="Brief description of the video content..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-add-video')">Cancel</button>
+      <button class="btn btn-gold" onclick="addStockVideo()">Add Video</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Stock Video Modal -->
+<div class="modal-overlay" id="modal-edit-video">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Edit Stock Video</div>
+      <div class="modal-close" onclick="closeModal('modal-edit-video')">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-video-id"/>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Title</div>
+        <input class="form-input" id="edit-video-title"/>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Video URL</div>
+        <input class="form-input" id="edit-video-url"/>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <div class="form-label">Category</div>
+          <select class="form-select" id="edit-video-category">
+            <option value="ambient">Ambient / Nature</option>
+            <option value="community">Community / City</option>
+            <option value="lifestyle">Lifestyle</option>
+            <option value="abstract">Abstract / Motion Graphics</option>
+            <option value="seasonal">Seasonal</option>
+            <option value="promo">LMN Promo</option>
+            <option value="advertiser">Advertiser Ad</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Duration (seconds)</div>
+          <input class="form-input" id="edit-video-duration" type="number" min="3" max="60"/>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-label">Status</div>
+        <select class="form-select" id="edit-video-active">
+          <option value="true">Active</option>
+          <option value="false">Paused</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-edit-video')">Cancel</button>
+      <button class="btn btn-gold" onclick="saveEditVideo()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Ad Modal -->
 <div class="modal-overlay" id="modal-edit-ad">
   <div class="modal">
@@ -865,13 +992,14 @@ function navigate(view) {
   document.getElementById(`nav-${view}`)?.classList.add('active');
   document.getElementById(`rail-${view}`)?.classList.add('active');
 
-  const titles = { dashboard: 'Dashboard', screens: 'Screens', advertisers: 'Advertisers', ads: 'Ad Library', reports: 'Play Logs', settings: 'Settings' };
+  const titles = { dashboard: 'Dashboard', screens: 'Screens', advertisers: 'Advertisers', ads: 'Ad Library', videos: 'Stock Videos', reports: 'Play Logs', settings: 'Settings' };
   document.getElementById('topbar-page').textContent = titles[view] || view;
 
   if (view === 'screens') loadScreensTable();
   if (view === 'advertisers') loadAdvertisersTable();
   if (view === 'ads') loadAdsTable();
   if (view === 'reports') loadPlaysTable();
+  if (view === 'videos') loadVideosTable();
 }
 
 // ── MODALS ──
@@ -1312,6 +1440,131 @@ async function addAd() {
   } catch(e) {
     toast('Error saving ad: ' + e.message, 'error');
   }
+}
+
+// ── STOCK VIDEOS ──
+let allVideos = [];
+
+async function loadVideosTable() {
+  const container = document.getElementById('videos-table');
+  try {
+    allVideos = await db('stock_videos?select=*&order=created_at.desc') || [];
+
+    if (allVideos.length === 0) {
+      container.innerHTML = `<div class="empty-state">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-title">No stock videos yet</div>
+        <div class="empty-sub">Add your first video from Higgsfield, Canva or Cloudinary</div>
+      </div>`;
+      return;
+    }
+
+    const catColors = {
+      ambient: 'badge-green', community: 'badge-blue', lifestyle: 'badge-gold',
+      abstract: 'badge-orange', seasonal: 'badge-blue', promo: 'badge-gold', advertiser: 'badge-green'
+    };
+
+    container.innerHTML = `<table class="tbl">
+      <thead><tr><th>Title</th><th>Category</th><th>Duration</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${allVideos.map(v => `
+          <tr>
+            <td class="td-main">${v.title}</td>
+            <td><span class="badge ${catColors[v.category] || 'badge-gold'}">${v.category}</span></td>
+            <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">${v.duration_seconds}s</td>
+            <td><span class="badge ${v.active ? 'badge-green' : 'badge-red'}">${v.active ? 'Active' : 'Paused'}</span></td>
+            <td style="white-space:nowrap;">
+              <button class="btn btn-outline btn-sm" style="margin-right:4px;" onclick="previewVideo('${v.video_url}')">▶ Preview</button>
+              <button class="btn btn-outline btn-sm" style="margin-right:4px;" onclick="editVideo('${v.id}')">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteVideo('${v.id}','${v.title}')">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+  } catch(e) {
+    container.innerHTML = `<div class="loading-state"><p>Error loading videos</p></div>`;
+  }
+}
+
+async function addStockVideo() {
+  const title = document.getElementById('new-video-title').value.trim();
+  const url = document.getElementById('new-video-url').value.trim();
+  const thumb = document.getElementById('new-video-thumb').value.trim();
+  const category = document.getElementById('new-video-category').value;
+  const duration = parseInt(document.getElementById('new-video-duration').value) || 15;
+  const desc = document.getElementById('new-video-desc').value.trim();
+
+  if (!title || !url) { toast('Title and video URL are required', 'error'); return; }
+
+  try {
+    await db('stock_videos', {
+      method: 'POST',
+      body: JSON.stringify({
+        title, video_url: url,
+        thumbnail_url: thumb || null,
+        category, duration_seconds: duration,
+        description: desc || null,
+        active: true
+      })
+    });
+    toast(`"${title}" added to stock library!`);
+    closeModal('modal-add-video');
+    loadVideosTable();
+    ['new-video-title','new-video-url','new-video-thumb','new-video-desc'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  } catch(e) {
+    toast('Error adding video: ' + e.message, 'error');
+  }
+}
+
+function editVideo(id) {
+  const v = allVideos.find(v => v.id === id);
+  if (!v) return;
+  document.getElementById('edit-video-id').value = v.id;
+  document.getElementById('edit-video-title').value = v.title || '';
+  document.getElementById('edit-video-url').value = v.video_url || '';
+  document.getElementById('edit-video-category').value = v.category || 'ambient';
+  document.getElementById('edit-video-duration').value = v.duration_seconds || 15;
+  document.getElementById('edit-video-active').value = v.active ? 'true' : 'false';
+  openModal('modal-edit-video');
+}
+
+async function saveEditVideo() {
+  const id = document.getElementById('edit-video-id').value;
+  try {
+    await db(`stock_videos?id=eq.${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        title: document.getElementById('edit-video-title').value,
+        video_url: document.getElementById('edit-video-url').value,
+        category: document.getElementById('edit-video-category').value,
+        duration_seconds: parseInt(document.getElementById('edit-video-duration').value) || 15,
+        active: document.getElementById('edit-video-active').value === 'true',
+      })
+    });
+    toast('Video updated!');
+    closeModal('modal-edit-video');
+    loadVideosTable();
+  } catch(e) {
+    toast('Error updating video: ' + e.message, 'error');
+  }
+}
+
+async function deleteVideo(id, title) {
+  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  try {
+    await db(`stock_videos?id=eq.${id}`, { method: 'DELETE' });
+    toast(`"${title}" deleted.`);
+    loadVideosTable();
+  } catch(e) {
+    toast('Error deleting video: ' + e.message, 'error');
+  }
+}
+
+function previewVideo(url) {
+  window.open(url, '_blank');
 }
 
 // ── EDIT AD ──
